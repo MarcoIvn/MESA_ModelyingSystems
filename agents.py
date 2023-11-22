@@ -50,7 +50,7 @@ class Car(mesa.Agent):
             new_x = 0
             new_y = y
 
-        # Get all agents in the next cell
+        # Check if the next position is not blocked by another agent   THIS PART OF THE CODE IS TO TEMPORARILY IGNORE STOP AND GO AGENTS AS OBSTACLES
         next_cell_contents = self.model.grid.get_cell_list_contents([(new_x, new_y)])
         if len(next_cell_contents) == 0:
             self.model.grid.move_agent(self, (new_x, new_y))
@@ -65,3 +65,10 @@ class Car(mesa.Agent):
                     print("GO")
                     self.model.grid.move_agent(self, (new_x, new_y))
                     pass
+        
+        '''
+        # Check if the next position is not blocked by another agent
+        if self.model.grid.is_cell_empty((new_x, new_y)):
+            # Move the car to the new position
+            self.model.grid.move_agent(self, (new_x, new_y))
+        '''
