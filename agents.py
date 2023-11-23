@@ -40,12 +40,17 @@ class Car(mesa.Agent):
         self.destination_parking_lot = destination_parking_lot
         self.path = []  # Path to follow
 
-    def heuristic(self, a, b):
-        """Calculate the Manhattan distance heuristic."""
-        return abs(a[0] - b[0]) + abs(a[1] - b[1])
+    def astar(self, start, goal, obstacles):
+        def heuristic(a, b):
+            if a in obstacles or b in obstacles:
+                return float('inf')  # No permitir movimiento a través de obstáculos
+            return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
-    def astar(self, start, goal):
-        """A* algorithm to find the path from start to goal."""
+        def neighbors(node):
+            if node in obstacles:
+                return []  # No permitir movimiento desde obstáculos
+            return self.model.grid.get_neighborhood(node, moore=True, include_center=False)
+
         frontier = []
         heapq.heappush(frontier, (0, start))
         came_from = {}
@@ -57,16 +62,14 @@ class Car(mesa.Agent):
             if current_node == goal:
                 break
 
-            for next_node in self.model.grid.get_neighborhood(
-                current_node, moore=True, include_center=False
-            ):
+            for next_node in neighbors(current_node):
                 new_cost = cost_so_far[current_node] + 1
                 if (
                     next_node not in cost_so_far
                     or new_cost < cost_so_far[next_node]
                 ):
                     cost_so_far[next_node] = new_cost
-                    priority = new_cost + self.heuristic(goal, next_node)
+                    priority = new_cost + heuristic(goal, next_node)
                     heapq.heappush(frontier, (priority, next_node))
                     came_from[next_node] = current_node
 
@@ -84,7 +87,11 @@ class Car(mesa.Agent):
             # If the path is empty, generate a new path to the destination
             start = self.pos
             goal = self.destination_parking_lot
-            self.path = self.astar(start, goal)
+            obstacles = [
+                agent.pos for agent in self.model.schedule.agents
+                if isinstance(agent, (Buildings, ParkingSpots, RoundAbout))
+            ]
+            self.path = self.astar(start, goal, obstacles)
             print(self.path)
 
         # Move along the path
