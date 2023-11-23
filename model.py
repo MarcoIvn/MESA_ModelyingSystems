@@ -51,7 +51,7 @@ class StreetView(mesa.Model):
         self.car_positions = car_positions if car_positions else []
 
         self.schedule = RandomActivationByTypeFiltered(self)
-        self.grid = mesa.space.MultiGrid(self.width, self.height, torus=True)
+        self.grid = mesa.space.MultiGrid(self.width, self.height, torus=False)
         self.datacollector = mesa.DataCollector(
             {
                 "Buildings": lambda b: b.schedule.get_type_count(Buildings),
