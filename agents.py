@@ -40,17 +40,7 @@ class Car(mesa.Agent):
         self.destination_parking_lot = destination_parking_lot
         self.path = []  # Path to follow
 
-    def astar(self, start, goal, obstacles):
-        def heuristic(a, b):
-            if a in obstacles or b in obstacles:
-                return float('inf')  # No permitir movimiento a través de obstáculos
-            return abs(a[0] - b[0]) + abs(a[1] - b[1])
-
-        def neighbors(node):
-            if node in obstacles:
-                return []  # No permitir movimiento desde obstáculos
-            return self.model.grid.get_neighborhood(node, moore=True, include_center=False)
-
+    def dijkstra(self, start, goal, obstacles):
         frontier = []
         heapq.heappush(frontier, (0, start))
         came_from = {}
@@ -62,15 +52,14 @@ class Car(mesa.Agent):
             if current_node == goal:
                 break
 
-            for next_node in neighbors(current_node):
+            for next_node in self.neighbors(current_node, obstacles):
                 new_cost = cost_so_far[current_node] + 1
                 if (
                     next_node not in cost_so_far
                     or new_cost < cost_so_far[next_node]
                 ):
                     cost_so_far[next_node] = new_cost
-                    priority = new_cost + heuristic(goal, next_node)
-                    heapq.heappush(frontier, (priority, next_node))
+                    heapq.heappush(frontier, (new_cost, next_node))
                     came_from[next_node] = current_node
 
         # Reconstruct path from goal to start
@@ -82,6 +71,11 @@ class Car(mesa.Agent):
         path.reverse()
         return path
 
+    def neighbors(self, node, obstacles):
+        if node in obstacles:
+            return []  # No permitir movimiento desde obstáculos
+        return self.model.grid.get_neighborhood(node, moore=True, include_center=False)
+
     def move_towards_destination(self):
         if not self.path:
             # If the path is empty, generate a new path to the destination
@@ -91,7 +85,7 @@ class Car(mesa.Agent):
                 agent.pos for agent in self.model.schedule.agents
                 if isinstance(agent, (Buildings, ParkingSpots, RoundAbout))
             ]
-            self.path = self.astar(start, goal, obstacles)
+            self.path = self.dijkstra(start, goal, obstacles)
             print(self.path)
 
         # Move along the path
