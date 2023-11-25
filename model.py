@@ -6,8 +6,23 @@ class StreetView(mesa.Model):
 
     description = "MESA Visualization of the street cross simulation."
     def step(self):
+         # Check if it's time to switch the lights every 20 steps
+        if self.step_count > 20 :
+            self.switch_lights()
+            self.step_count = 0
+            
+
         self.schedule.step()  # Call the step method for all agents
         self.datacollector.collect(self)  # Collect data for visualization
+        self.step_count += 1
+    
+    def switch_lights(self):
+        for agent in self.schedule.agents:
+            if isinstance(agent, Stop):
+                agent.__class__ = Go  # Change the class to Go
+            elif isinstance(agent, Go):
+                agent.__class__ = Stop  # Change the class to Stop
+
     def __init__(
         self,
         width=25,
@@ -37,8 +52,11 @@ class StreetView(mesa.Model):
         roundAbout_positions = [(14, 10), (15, 10), (14, 9), (15, 9)],
         stop_positions = [(15, 21), (16, 21), (5, 15), (6, 15), (0, 12), (1, 12), (23, 7), (24, 7), (13, 2), (14, 2), (15, 3), (16, 3)],
         go_positions = [(17, 23), (17, 22), (8, 17), (8, 16), (2, 11), (2, 10), (22, 9), (22, 8), (17, 5), (17, 4), (12, 1), (12, 0)],
-        car_positions=[((0,0), (10, 21))] # (14, 8) (23,23)
+        car_positions=[((20,0), (2,20))] # (14, 8) (23,23), (10,0)
     ):
+         # Initialize step count
+        self.step_count = 0
+
         super().__init__()
         # Set parameters
         self.width = width

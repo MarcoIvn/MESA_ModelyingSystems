@@ -88,6 +88,17 @@ class Car(mesa.Agent):
             self.path = self.dijkstra(start, goal, obstacles)
             print(self.path)
 
+        # Check if the next position has a Stop agent
+        next_position = self.path[0] if self.path else self.pos
+        stop_agents = [
+            agent for agent in self.model.schedule.agents
+            if isinstance(agent, Stop) and agent.pos == next_position
+        ]
+
+        if stop_agents:
+            # There is a Stop agent at the next position, so don't move
+            return
+
         # Move along the path
         if self.path:
             next_position = self.path.pop(0)
