@@ -34,11 +34,12 @@ class Go(mesa.Agent):
         self.pos = pos
 
 class Car(mesa.Agent):
-    def __init__(self, unique_id, pos, model, destination_parking_lot):
+    def __init__(self, unique_id, pos, model, destination_parking_lot,directions):
         super().__init__(unique_id, model)
         self.pos = pos
         self.destination_parking_lot = destination_parking_lot
         self.path = []  # Path to follow
+        self.directions = directions
 
     def dijkstra(self, start, goal, obstacles):
         frontier = []
