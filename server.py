@@ -62,7 +62,7 @@ def street_portrayal(agent):
     return portrayal
 
 
-canvas_element = mesa.visualization.CanvasGrid(street_portrayal, 25, 25, 600, 600)
+canvas_element = mesa.visualization.CanvasGrid(street_portrayal, 25, 24, 600, 600)
 chart_element = mesa.visualization.ChartModule(
     [
         {"Label": "Buildings", "Color": "#0390fc"},

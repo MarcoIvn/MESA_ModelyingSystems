@@ -1,6 +1,7 @@
 import mesa
 from agents import *
 from scheduler import RandomActivationByTypeFiltered
+import csv
 
 class StreetView(mesa.Model):
 
@@ -22,6 +23,24 @@ class StreetView(mesa.Model):
                 agent.__class__ = Go  # Change the class to Go
             elif isinstance(agent, Go):
                 agent.__class__ = Stop  # Change the class to Stop
+    
+    def load_directions(self, filename="Directions - Hoja 1.csv"):
+        directions = []
+
+        with open(filename, newline='') as csvfile:
+            reader = csv.reader(csvfile)
+            next(reader)  # Skip header row
+
+            rows = list(reader)
+
+            for col in range(1, len(rows[0])):  # Iterate over columns, starting from the second column
+                direction_col = [row[col].strip() for row in rows]
+                direction_col.reverse()  # Invertir el orden de los datos en cada subarray
+                directions.append(direction_col)
+
+        return directions
+
+
 
     def __init__(
         self,
@@ -52,11 +71,13 @@ class StreetView(mesa.Model):
         roundAbout_positions = [(14, 10), (15, 10), (14, 9), (15, 9)],
         stop_positions = [(15, 21), (16, 21), (5, 15), (6, 15), (0, 12), (1, 12), (23, 7), (24, 7), (13, 2), (14, 2), (15, 3), (16, 3)],
         go_positions = [(17, 23), (17, 22), (8, 17), (8, 16), (2, 11), (2, 10), (22, 9), (22, 8), (17, 5), (17, 4), (12, 1), (12, 0)],
-        car_positions=[((20,0), (2,20))] # (14, 8) (23,23), (10,0)
+        car_positions=[((0,0), (10,21))], # (14, 8) (23,23), (10,0)
     ):
          # Initialize step count
         self.step_count = 0
 
+        self.directions = self.load_directions()
+        print(self.directions)
         super().__init__()
         # Set parameters
         self.width = width
