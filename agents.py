@@ -75,8 +75,26 @@ class Car(mesa.Agent):
     def neighbors(self, node, obstacles):
         if node in obstacles:
             return []  # No permitir movimiento desde obstáculos
-        return self.model.grid.get_neighborhood(node, moore=True, include_center=False)
 
+        # Obtener las direcciones disponibles para el nodo actual
+        available_directions = self.directions[node[0]][node[1]].split(',')
+
+        # Calcular los vecinos basándote en las direcciones disponibles
+        neighbors = []
+        for direction in available_directions:
+            if direction == 'UP':
+                neighbors.append((node[0], node[1] + 1))
+            elif direction == 'DOWN':
+                neighbors.append((node[0], node[1] - 1))
+            elif direction == 'LEFT':
+                neighbors.append((node[0] - 1, node[1]))
+            elif direction == 'RIGHT':
+                neighbors.append((node[0] + 1, node[1]))
+
+        neighbors = [(x, y) for (x, y) in neighbors if 0 <= x < self.model.width and 0 <= y < self.model.height]
+        #print(f"node: {node} ,neighbors: {neighbors}")
+        return neighbors
+    
     def move_towards_destination(self):
         if not self.path:
             # If the path is empty, generate a new path to the destination
