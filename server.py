@@ -52,7 +52,7 @@ def street_portrayal(agent):
         portrayal["h"] = 1
 
     if type(agent) is Car:
-        portrayal["Color"] = ["#000", "#000", "#000"]
+        portrayal["Color"] = [agent.color, agent.color, agent.color]
         portrayal["Shape"] = "rect"
         portrayal["Filled"] = "true"
         portrayal["Layer"] = 0
@@ -62,7 +62,7 @@ def street_portrayal(agent):
     return portrayal
 
 
-canvas_element = mesa.visualization.CanvasGrid(street_portrayal, 25, 25, 600, 600)
+canvas_element = mesa.visualization.CanvasGrid(street_portrayal, 25, 24, 600, 600)
 chart_element = mesa.visualization.ChartModule(
     [
         {"Label": "Buildings", "Color": "#0390fc"},

@@ -1,13 +1,47 @@
 import mesa
 from agents import *
 from scheduler import RandomActivationByTypeFiltered
+import csv
 
 class StreetView(mesa.Model):
 
     description = "MESA Visualization of the street cross simulation."
     def step(self):
+         # Check if it's time to switch the lights every 20 steps
+        if self.step_count > 25 :
+            self.switch_lights()
+            self.step_count = 0
+            
+
         self.schedule.step()  # Call the step method for all agents
         self.datacollector.collect(self)  # Collect data for visualization
+        self.step_count += 1
+    
+    def switch_lights(self):
+        for agent in self.schedule.agents:
+            if isinstance(agent, Stop):
+                agent.__class__ = Go  # Change the class to Go
+            elif isinstance(agent, Go):
+                agent.__class__ = Stop  # Change the class to Stop
+    
+    def load_directions(self, filename="Directions - Hoja 1.csv"):
+        directions = []
+
+        with open(filename, newline='') as csvfile:
+            reader = csv.reader(csvfile)
+            next(reader)  # Skip header row
+
+            rows = list(reader)
+
+            for col in range(1, len(rows[0])):  # Iterate over columns, starting from the second column
+                direction_col = [row[col].strip() for row in rows]
+                direction_col.reverse()  # Invertir el orden de los datos en cada subarray
+                directions.append(direction_col)
+
+        return directions
+
+
+
     def __init__(
         self,
         width=25,
@@ -36,9 +70,12 @@ class StreetView(mesa.Model):
 
         roundAbout_positions = [(14, 10), (15, 10), (14, 9), (15, 9)],
         stop_positions = [(15, 21), (16, 21), (5, 15), (6, 15), (0, 12), (1, 12), (23, 7), (24, 7), (13, 2), (14, 2), (15, 3), (16, 3)],
-        go_positions = [(17, 23), (17, 22), (8, 17), (8, 16), (2, 11), (2, 10), (22, 9), (22, 8), (17, 5), (17, 4), (12, 1), (12, 0)],
-        car_positions=[((0, 0), (10, 21))]
+        go_positions = [(17, 23), (17, 22), (7, 17), (7, 16), (2, 11), (2, 10), (22, 9), (22, 8), (17, 5), (17, 4), (12, 1), (12, 0)],
+        car_positions=[((14, 8), (18,20)),((14,7), (2,6)),((5,10), (10,21)),((0,0), (8,15)),((24,23), (5,3)),((0,1),(8,3)),((0,23),(21,19)),((2,8),(18,6))], 
     ):
+        self.step_count = 0
+
+        self.directions = self.load_directions()
         super().__init__()
         # Set parameters
         self.width = width
@@ -51,7 +88,7 @@ class StreetView(mesa.Model):
         self.car_positions = car_positions if car_positions else []
 
         self.schedule = RandomActivationByTypeFiltered(self)
-        self.grid = mesa.space.MultiGrid(self.width, self.height, torus=True)
+        self.grid = mesa.space.MultiGrid(self.width, self.height, torus=False)
         self.datacollector = mesa.DataCollector(
             {
                 "Buildings": lambda b: b.schedule.get_type_count(Buildings),
@@ -101,7 +138,7 @@ class StreetView(mesa.Model):
         # Create car
         for (pos, destination_parking_lot) in reversed(self.car_positions):
             x, y = pos
-            car = Car(self.next_id(), (x, y), self, destination_parking_lot)
+            car = Car(self.next_id(), (x, y), self, destination_parking_lot,self.directions)
             self.grid.place_agent(car, (x, y))
             self.schedule.add(car)
 
