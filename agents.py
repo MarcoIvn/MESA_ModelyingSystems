@@ -2,6 +2,7 @@ import mesa
 import numpy as np
 import heapq
 import math
+import random
 
 class Buildings(mesa.Agent):
 
@@ -40,8 +41,19 @@ class Car(mesa.Agent):
         self.destination_parking_lot = destination_parking_lot
         self.path = []  # Path to follow
         self.directions = directions
+        self.color = self.generate_random_color()
 
-    def dijkstra(self, start, goal, obstacles):
+    def generate_random_color(self):
+        while True:
+            r = random.randint(20, 100)
+            g = random.randint(20, 100)
+            b = random.randint(20, 100)
+            if r > g and r > b and g > 50 and b > 50:
+                continue
+
+            return "#{:02x}{:02x}{:02x}".format(r, g, b)
+
+    def dijkstra(self, start, goal, avoid_position=None):
         frontier = []
         heapq.heappush(frontier, (0, start))
         came_from = {}
@@ -53,7 +65,7 @@ class Car(mesa.Agent):
             if current_node == goal:
                 break
 
-            for next_node in self.neighbors(current_node, obstacles):
+            for next_node in self.neighbors(current_node, avoid_position):
                 new_cost = cost_so_far[current_node] + 1
                 if (
                     next_node not in cost_so_far
@@ -64,47 +76,55 @@ class Car(mesa.Agent):
                     came_from[next_node] = current_node
 
         # Reconstruct path from goal to start
-        path = [goal]
+        path = []
         current = goal
         while current != start:
+            if current not in came_from:
+                # Path not founded, car must wait
+                return []
             current = came_from[current]
             path.append(current)
+
         path.reverse()
+
+        # Last coord to path
+        path.append(goal)
+
         return path
 
-    def neighbors(self, node, obstacles):
-        if node in obstacles:
-            return []  # No permitir movimiento desde obstáculos
 
-        # Obtener las direcciones disponibles para el nodo actual
+    def neighbors(self, node, avoid_position=None):
         available_directions = self.directions[node[0]][node[1]].split(',')
-
-        # Calcular los vecinos basándote en las direcciones disponibles
         neighbors = []
         for direction in available_directions:
+            new_neighbor = None
             if direction == 'UP':
-                neighbors.append((node[0], node[1] + 1))
+                new_neighbor = (node[0], node[1] + 1)
             elif direction == 'DOWN':
-                neighbors.append((node[0], node[1] - 1))
+                new_neighbor = (node[0], node[1] - 1)
             elif direction == 'LEFT':
-                neighbors.append((node[0] - 1, node[1]))
+                new_neighbor = (node[0] - 1, node[1])
             elif direction == 'RIGHT':
-                neighbors.append((node[0] + 1, node[1]))
+                new_neighbor = (node[0] + 1, node[1])
+
+            if new_neighbor and new_neighbor != avoid_position:
+                neighbors.append(new_neighbor)
 
         neighbors = [(x, y) for (x, y) in neighbors if 0 <= x < self.model.width and 0 <= y < self.model.height]
-        #print(f"node: {node} ,neighbors: {neighbors}")
         return neighbors
+
     
+    def find_alternative_path(self, avoid_position):
+        start = self.pos
+        goal = self.destination_parking_lot
+        return self.dijkstra(start, goal,avoid_position)
+
     def move_towards_destination(self):
         if not self.path:
             # If the path is empty, generate a new path to the destination
             start = self.pos
             goal = self.destination_parking_lot
-            obstacles = [
-                agent.pos for agent in self.model.schedule.agents
-                if isinstance(agent, (Buildings, ParkingSpots, RoundAbout))
-            ]
-            self.path = self.dijkstra(start, goal, obstacles)
+            self.path = self.dijkstra(start, goal)
             print(self.path)
 
         # Check if the next position has a Stop agent
@@ -115,9 +135,23 @@ class Car(mesa.Agent):
         ]
 
         if stop_agents:
-            # There is a Stop agent at the next position, so don't move
             return
+        # Check if the next position is occupied by another car
+        car_agents = [
+            agent for agent in self.model.schedule.agents
+            if isinstance(agent, Car) and agent.pos == next_position and agent != self
+        ]
 
+        if car_agents:
+            print(f"Car {self.unique_id} encontró otro carro en su próxima posición.")
+            avoid_position = car_agents[0].pos if car_agents else None
+            alternative_path = self.find_alternative_path(avoid_position)
+            if alternative_path != []:
+                self.path = alternative_path
+                print(f"Car {self.unique_id} ha encontrado un camino alternativo.")
+            else:
+                print(f"Car {self.unique_id} está esperando a que el otro coche se mueva.")
+                return
         # Move along the path
         if self.path:
             next_position = self.path.pop(0)

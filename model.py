@@ -8,7 +8,7 @@ class StreetView(mesa.Model):
     description = "MESA Visualization of the street cross simulation."
     def step(self):
          # Check if it's time to switch the lights every 20 steps
-        if self.step_count > 20 :
+        if self.step_count > 25 :
             self.switch_lights()
             self.step_count = 0
             
@@ -71,14 +71,8 @@ class StreetView(mesa.Model):
         roundAbout_positions = [(14, 10), (15, 10), (14, 9), (15, 9)],
         stop_positions = [(15, 21), (16, 21), (5, 15), (6, 15), (0, 12), (1, 12), (23, 7), (24, 7), (13, 2), (14, 2), (15, 3), (16, 3)],
         go_positions = [(17, 23), (17, 22), (7, 17), (7, 16), (2, 11), (2, 10), (22, 9), (22, 8), (17, 5), (17, 4), (12, 1), (12, 0)],
-        car_positions=[((5,10), (10,21))], 
-        # (5,10), (10,21)   
-        # (14, 8), (23,23)
-        # (14,7), (2,6)
-        # (0,0), (8,15)
-        # (24,23), (5,3)
+        car_positions=[((14, 8), (18,20)),((14,7), (2,6)),((5,10), (10,21)),((0,0), (8,15)),((24,23), (5,3)),((0,1),(8,3)),((0,23),(21,19)),((2,8),(18,6))], 
     ):
-         # Initialize step count
         self.step_count = 0
 
         self.directions = self.load_directions()
