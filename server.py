@@ -3,6 +3,13 @@ import mesa
 from agents import *
 from model import StreetView
 
+global_model_instance = None
+
+def get_model_instance():
+    global global_model_instance
+    if global_model_instance is None:
+        global_model_instance = StreetView()
+    return global_model_instance
 
 def street_portrayal(agent):
     if agent is None:
@@ -81,3 +88,8 @@ server = mesa.visualization.ModularServer(
     StreetView, [canvas_element, chart_element], "Street Mesa Simulation", model_params
 )
 server.port = 8521
+
+if __name__ == '__main__':
+    # Initialize the model instance when the server starts
+    global_model_instance = StreetView()
+    server.launch()
