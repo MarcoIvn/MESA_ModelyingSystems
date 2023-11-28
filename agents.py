@@ -113,7 +113,7 @@ class Car(mesa.Agent):
         neighbors = [(x, y) for (x, y) in neighbors if 0 <= x < self.model.width and 0 <= y < self.model.height]
         return neighbors
 
-    
+
     def find_alternative_path(self, avoid_position):
         start = self.pos
         goal = self.destination_parking_lot
@@ -158,4 +158,5 @@ class Car(mesa.Agent):
             self.model.grid.move_agent(self, next_position)
 
     def step(self):
+        print(self.pos)
         self.move_towards_destination()

@@ -11,19 +11,21 @@ class StreetView(mesa.Model):
         if self.step_count > 25 :
             self.switch_lights()
             self.step_count = 0
-            
+
+        for agent in self.schedule.agents:
+            print(f"Agent: {agent.unique_id} Pos:{agent.pos}")
 
         self.schedule.step()  # Call the step method for all agents
         self.datacollector.collect(self)  # Collect data for visualization
         self.step_count += 1
-    
+
     def switch_lights(self):
         for agent in self.schedule.agents:
             if isinstance(agent, Stop):
                 agent.__class__ = Go  # Change the class to Go
             elif isinstance(agent, Go):
                 agent.__class__ = Stop  # Change the class to Stop
-    
+
     def load_directions(self, filename="Directions - Hoja 1.csv"):
         directions = []
 
@@ -50,15 +52,15 @@ class StreetView(mesa.Model):
                                      (3, 20), (4, 20), (5, 20), (6, 20), (7, 20), (8, 20), (9, 20), (10, 20), (11, 20), (12, 20),                   (17, 20),                          (21, 20), (22, 20),
                             (2, 19), (3, 19), (4, 19), (5, 19), (6, 19), (7, 19), (8, 19), (9, 19), (10, 19), (11, 19),                             (17, 19), (18, 19),                          (22, 19),
                             (2, 18), (3, 18), (4, 18), (5, 18), (6, 18),          (8, 18), (9, 18), (10, 18), (11, 18), (12, 18),                   (17, 18), (18, 18),                (21, 18), (22, 18),
-                            
+
                             (2, 15), (3, 15), (4, 15),                   (7, 15),          (9, 15), (10, 15), (11, 15), (12, 15),                   (17, 15), (18, 15),                (21, 15), (22, 15),
                             (2, 14), (3, 14), (4, 14),                   (7, 14), (8, 14), (9, 14), (10, 14), (11, 14), (12, 14),                   (17, 14), (18, 14),                (21, 14),
                             (2, 13), (3, 13),                            (7, 13), (8, 13), (9, 13), (10, 13), (11, 13),                                       (18, 13),                (21, 13), (22, 13),
                             (2, 12), (3, 12), (4, 12),                   (7, 12), (8, 12), (9, 12), (10, 12), (11, 12), (12, 12),                   (17, 12), (18, 12),                (21, 12), (22, 12),
-                            
-                            
-                            
-                            
+
+
+
+
                             (2, 7), (3, 7), (4, 7), (5, 7),                           (8, 7), (9, 7), (10, 7), (11, 7), (12, 7),                    (17, 7), (18, 7), (19, 7), (20, 7), (21, 7), (22, 7),
                                     (3, 6), (4, 6), (5, 6),                           (8, 6), (9, 6), (10, 6), (11, 6), (12, 6),                    (17, 6),          (19, 6),          (21, 6), (22, 6),
                             (2, 5), (3, 5), (4, 5), (5, 5),                           (8, 5), (9, 5), (10, 5), (11, 5), (12, 5),
@@ -71,7 +73,7 @@ class StreetView(mesa.Model):
         roundAbout_positions = [(14, 10), (15, 10), (14, 9), (15, 9)],
         stop_positions = [(15, 21), (16, 21), (5, 15), (6, 15), (0, 12), (1, 12), (23, 7), (24, 7), (13, 2), (14, 2), (15, 3), (16, 3)],
         go_positions = [(17, 23), (17, 22), (7, 17), (7, 16), (2, 11), (2, 10), (22, 9), (22, 8), (17, 5), (17, 4), (12, 1), (12, 0)],
-        car_positions=[((14, 8), (18,20)),((14,7), (2,6)),((5,10), (10,21)),((0,0), (8,15)),((24,23), (5,3)),((0,1),(8,3)),((0,23),(21,19)),((2,8),(18,6))], 
+        car_positions=[((14, 8), (18,20)),((14,7), (2,6)),((5,10), (10,21)),((0,0), (8,15)),((24,23), (5,3)),((0,1),(8,3)),((0,23),(21,19)),((2,8),(18,6))],
     ):
         self.step_count = 0
 
@@ -121,7 +123,7 @@ class StreetView(mesa.Model):
             self.grid.place_agent(roundAbout, (x, y))
             self.schedule.add(roundAbout)
 
-        # Create stop 
+        # Create stop
         for pos in reversed(self.stop_positions):
             x, y = pos
             stop = Stop(self.next_id(), (x, y), self)
@@ -144,4 +146,3 @@ class StreetView(mesa.Model):
 
         self.running = True
         self.datacollector.collect(self)
-        
