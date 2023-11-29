@@ -66,6 +66,18 @@ class StreetView(mesa.Model):
             elif isinstance(agent, Go):
                 agent.__class__ = Stop  # Change the class to Stop
 
+    def get_semaphore_status(self):
+        semaphore_status = []
+        for agent in self.schedule.agents:
+            if isinstance(agent, (Stop, Go)):
+                status = {
+                    "id": agent.unique_id,
+                    "position": agent.pos,
+                    "status": "Stop" if isinstance(agent, Stop) else "Go"
+                }
+                semaphore_status.append(status)
+        return semaphore_status
+
     def load_directions(self, filename="Directions - Hoja 1.csv"):
         directions = []
 

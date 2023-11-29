@@ -16,6 +16,12 @@ def get_car_positions():
     model.step()
     return jsonify(car_positions)
 
+@app.route('/get_semaphore', methods=['GET'])
+def get_semaphore():
+    model = get_model_instance()
+    semaphore_status = model.get_semaphore_status()
+    return jsonify(semaphore_status)
+
 def run_mesa():
     server.launch(open_browser=True)
 
