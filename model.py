@@ -12,37 +12,27 @@ class StreetView(mesa.Model):
             (x, y) for x in range(24) for y in range(23)
         )
         taken_positions = set()
-        taken_destinations = set()  # Nuevo conjunto para almacenar destinos ya asignados
-
+        taken_destinations = set() 
         for agent in self.schedule.agents:
             taken_positions.add(agent.pos)
 
         cars = []
 
         for _ in range(num_cars):
-            # Obtener una posición inicial única y aleatoria
             initial_position = random.choice(list(available_positions - taken_positions))
 
-            # Obtener una posición de destino única y aleatoria que no esté en la lista de destinos ya asignados
             destination_position = random.choice(list(set(self.parkingSpots_positions) - taken_destinations))
             print(f"Car: Initial Position={initial_position}, Destination={destination_position}")
-
-
-            # Crear el agente Car con las posiciones iniciales y de destino
             car = Car(self.next_id(), initial_position, self, destination_position, self.directions)
 
-            # Agregar el agente a la grilla y al horario
             self.grid.place_agent(car, initial_position)
             self.schedule.add(car)
 
-            # Actualizar conjuntos de posiciones disponibles y ocupadas
             taken_positions.add(initial_position)
             available_positions.remove(initial_position)
 
-            # Actualizar conjunto de destinos ya asignados
             taken_destinations.add(destination_position)
 
-            # Agregar el agente a la lista de coches generados
             cars.append(car)
             print(f"Car {car.unique_id} Path: {car.path}")
 
