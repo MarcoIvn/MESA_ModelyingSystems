@@ -6,14 +6,54 @@ import csv
 class StreetView(mesa.Model):
 
     description = "MESA Visualization of the street cross simulation."
+
+    def generate_cars(self, num_cars):
+        available_positions = set(
+            (x, y) for x in range(24) for y in range(23)
+        )
+        taken_positions = set()
+        taken_destinations = set()  # Nuevo conjunto para almacenar destinos ya asignados
+
+        for agent in self.schedule.agents:
+            taken_positions.add(agent.pos)
+
+        cars = []
+
+        for _ in range(num_cars):
+            # Obtener una posición inicial única y aleatoria
+            initial_position = random.choice(list(available_positions - taken_positions))
+
+            # Obtener una posición de destino única y aleatoria que no esté en la lista de destinos ya asignados
+            destination_position = random.choice(list(set(self.parkingSpots_positions) - taken_destinations))
+            print(f"Car: Initial Position={initial_position}, Destination={destination_position}")
+
+
+            # Crear el agente Car con las posiciones iniciales y de destino
+            car = Car(self.next_id(), initial_position, self, destination_position, self.directions)
+
+            # Agregar el agente a la grilla y al horario
+            self.grid.place_agent(car, initial_position)
+            self.schedule.add(car)
+
+            # Actualizar conjuntos de posiciones disponibles y ocupadas
+            taken_positions.add(initial_position)
+            available_positions.remove(initial_position)
+
+            # Actualizar conjunto de destinos ya asignados
+            taken_destinations.add(destination_position)
+
+            # Agregar el agente a la lista de coches generados
+            cars.append(car)
+            print(f"Car {car.unique_id} Path: {car.path}")
+
+        return cars
+
     def step(self):
          # Check if it's time to switch the lights every 20 steps
         if self.step_count > 25 :
             self.switch_lights()
             self.step_count = 0
 
-        for agent in self.schedule.agents:
-            print(f"Agent: {agent.unique_id} Pos:{agent.pos}")
 
         self.schedule.step()  # Call the step method for all agents
         self.datacollector.collect(self)  # Collect data for visualization
@@ -73,7 +113,8 @@ class StreetView(mesa.Model):
         roundAbout_positions = [(14, 10), (15, 10), (14, 9), (15, 9)],
         stop_positions = [(15, 21), (16, 21), (5, 15), (6, 15), (0, 12), (1, 12), (23, 7), (24, 7), (13, 2), (14, 2), (15, 3), (16, 3)],
         go_positions = [(17, 23), (17, 22), (7, 17), (7, 16), (2, 11), (2, 10), (22, 9), (22, 8), (17, 5), (17, 4), (12, 1), (12, 0)],
-        car_positions=[((14, 8), (18,20)),((14,7), (2,6)),((5,10), (10,21)),((0,0), (8,15)),((24,23), (5,3)),((0,1),(8,3)),((0,23),(21,19)),((2,8),(18,6))],
+        #car_positions=[((14, 8), (18,20)),((14,7), (2,6)),((5,10), (10,21)),((0,0), (8,15)),((24,23), (5,3)),((0,1),(8,3)),((0,23),(21,19)),((2,8),(18,6))],
+        num_cars=5,
     ):
         self.step_count = 0
 
@@ -87,7 +128,8 @@ class StreetView(mesa.Model):
         self.roundAbout_positions = roundAbout_positions if roundAbout_positions else []
         self.stop_positions = stop_positions if stop_positions else []
         self.go_positions = go_positions if go_positions else []
-        self.car_positions = car_positions if car_positions else []
+        #self.car_positions = car_positions if car_positions else []
+
 
         self.schedule = RandomActivationByTypeFiltered(self)
         self.grid = mesa.space.MultiGrid(self.width, self.height, torus=False)
@@ -137,12 +179,7 @@ class StreetView(mesa.Model):
             self.grid.place_agent(go, (x, y))
             self.schedule.add(go)
 
-        # Create car
-        for (pos, destination_parking_lot) in reversed(self.car_positions):
-            x, y = pos
-            car = Car(self.next_id(), (x, y), self, destination_parking_lot,self.directions)
-            self.grid.place_agent(car, (x, y))
-            self.schedule.add(car)
+        self.generate_cars(num_cars)
 
         self.running = True
         self.datacollector.collect(self)
