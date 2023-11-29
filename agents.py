@@ -125,7 +125,7 @@ class Car(mesa.Agent):
             start = self.pos
             goal = self.destination_parking_lot
             self.path = self.dijkstra(start, goal)
-            print(self.path)
+            #print(self.path)
 
         # Check if the next position has a Stop agent
         next_position = self.path[0] if self.path else self.pos
