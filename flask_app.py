@@ -9,11 +9,11 @@ app = Flask(__name__)
 @app.route('/get_car_positions', methods=['GET'])
 def get_car_positions():
     model = get_model_instance()
-    model.step()
     car_positions = []
     for agent in model.schedule.agents:
         if isinstance(agent, Car):
             car_positions.append({"id": agent.unique_id, "position": agent.pos})
+    model.step()
     return jsonify(car_positions)
 
 def run_mesa():
